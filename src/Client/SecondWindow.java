@@ -30,9 +30,9 @@ public class SecondWindow {
 	JFrame frame;
 	JPanel boardPanel;
 	private JPanel userPanel;
-	private JButton submitButton;
-	private JButton voteButton;
-	private JButton passButton;
+	JButton submitButton;
+	JButton voteButton;
+	JButton passButton;
 	private JPanel resultPanel;
 	JComboBox<String> jcombo;
 	private Map<String, Double> position;
@@ -134,13 +134,14 @@ public class SecondWindow {
 				p.setLocation(Double.parseDouble(position.get("x").toString()),
 						Double.parseDouble(position.get("y").toString()));
 				JButton button = (JButton) boardPanel.getComponentAt(p);
-				button.setEnabled(false);
-				
+				button.setEnabled(false);				
 				JSONObject jsonobj = generateJSON("submit", position, null, name);
 				jsonobj.put("connect", 5);
+				jsonobj.put("letter", button.getText());
 				new Client().submit(jsonobj);
-				
-				
+				submitButton.setEnabled(false);
+				voteButton.setEnabled(false);
+				passButton.setEnabled(false);	
 				position.clear();
 				disableCounter++;
 				if (disableCounter == 400) {

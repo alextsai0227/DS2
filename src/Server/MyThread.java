@@ -112,16 +112,26 @@ public class MyThread extends Server {
 						super.broadcast(names, gameConnection, status);
 					}else if (jsonobj.get("command").equals("submit")) 
 					{
-						for(int j=0;j<gameConnection.size();j++)
-						{
-							System.out.println(gameConnection.get(j).name);
-							System.out.println(gameID);
-							System.out.println(games.get(gameID).names);
+						
+						// debug print
+//						for(int j=0;j<gameConnection.size();j++)
+//						{
+//							System.out.println(gameConnection.get(j).name);
+//							System.out.println(gameID);
+//							System.out.println(games.get(gameID).names);
+//						}
+						
+						// debug print
+						System.out.println("========see===========");
+						System.out.println(games.get(gameID).names);
+						String playerName = jsonobj.get("playerName").toString();
+						int whoShouldPlay = games.get(gameID).names.indexOf(playerName) + 1;
+						if (whoShouldPlay >= games.get(gameID).names.size()) {
+							whoShouldPlay = 0;
 						}
-						super.submit(games.get(gameID).names, jsonobj.get("playerName").toString(), jsonobj);
-						if (jsonobj.get("playerName").equals(clientSocket.getPort())) {
-								
-						}
+						System.out.println(whoShouldPlay);
+						jsonobj.put("whoShouldPlay", games.get(gameID).names.get(whoShouldPlay));
+						super.submit(games.get(gameID).names, playerName, jsonobj);
 					}
 				} catch (Exception e) {
 					System.out.println("Client " + name + " is closed...");

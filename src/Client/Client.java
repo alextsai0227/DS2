@@ -1,5 +1,6 @@
 package Client;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -76,6 +77,9 @@ public class Client {
 						win.frame.setVisible(false);
 						win.fw.setVisible(false);
 						win2.initialize(name, playerNames);
+						if (!name.equals(mes.get(1))) {
+							controlBtn(false, win2);
+						}
 						
 					}
 				}
@@ -88,13 +92,20 @@ public class Client {
 					if (jsonobj.get("command").equals("submit")) { 
 						System.out.println("=====inhere======111111");
 						System.out.println(Double.parseDouble(jsonobj.get("pointy").toString()));
-						
 						Double pointx = Double.parseDouble(jsonobj.get("pointx").toString());
 						System.out.println("=====inhere======222222");
 						Double pointy = Double.parseDouble(jsonobj.get("pointy").toString());
 						System.out.println("=====inhere======333333");
-						disableBtn(pointx, pointy, win2);
-					}					
+						String letter = jsonobj.get("letter").toString();
+						disableBtn(pointx, pointy, win2, letter);
+					}
+					
+					System.out.println("=====whoShouldPlay======");
+					System.out.println(jsonobj.toString());
+					System.out.println(name);
+					if(jsonobj.get("whoShouldPlay").equals(name)) {
+						controlBtn(true, win2);		
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -271,7 +282,7 @@ public class Client {
 		}
 	}
 	
-	public static void disableBtn(Double pointx, Double pointy, SecondWindow win2) {
+	public static void disableBtn(Double pointx, Double pointy, SecondWindow win2, String letter) {
 		// debug print
 		System.out.println("=====disableBtn=======111111111======");
 		Point p = new Point();
@@ -284,6 +295,7 @@ public class Client {
 		System.out.println("=====disableBtn=======222222222=======");
 		System.out.println(button);
 		
+		button.setText(letter);
 		button.setEnabled(false);
 	}
 
@@ -295,6 +307,19 @@ public class Client {
 	        
 	    }
 	    return true;
+	}
+	
+	public static void controlBtn(Boolean isOpen, SecondWindow win2) {
+		if (isOpen) {
+			win2.submitButton.setEnabled(true);
+			win2.voteButton.setEnabled(true);
+			win2.passButton.setEnabled(true);	
+		}else {
+			win2.submitButton.setEnabled(false);
+			win2.voteButton.setEnabled(false);
+			win2.passButton.setEnabled(false);
+		}
+		
 	}
 	
 }
