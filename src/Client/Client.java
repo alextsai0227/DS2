@@ -1,5 +1,6 @@
 package Client;
 
+import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -12,8 +13,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Client {
@@ -37,6 +41,11 @@ public class Client {
 			System.out.println("Connection established");
 			String message = null;
 			while ((message = in.readLine()) != null) {
+				
+				// debug print
+				System.out.println("What is message");
+				System.out.println(message);
+				
 				String[] str = message.split(",");
 				ArrayList<String> mes = new ArrayList<String>();
 				for (int i = 0; i < str.length; i++) {
@@ -67,7 +76,25 @@ public class Client {
 						win.frame.setVisible(false);
 						win.fw.setVisible(false);
 						win2.initialize(name, playerNames);
+						
 					}
+				}
+				
+				if(isJSONValid(message)){
+					JSONObject jsonobj = new JSONObject(message);
+					System.out.println("debug");
+					System.out.println(isJSONValid(message));
+
+					if (jsonobj.get("command").equals("submit")) { 
+						System.out.println("=====inhere======111111");
+						System.out.println(Double.parseDouble(jsonobj.get("pointy").toString()));
+						
+						Double pointx = Double.parseDouble(jsonobj.get("pointx").toString());
+						System.out.println("=====inhere======222222");
+						Double pointy = Double.parseDouble(jsonobj.get("pointy").toString());
+						System.out.println("=====inhere======333333");
+						disableBtn(pointx, pointy, win2);
+					}					
 				}
 			}
 		} catch (Exception e) {
@@ -232,6 +259,8 @@ public class Client {
 			try {
 				String str = jsonobj.toString();
 				// set message to server
+				System.out.println("Client submit");
+				System.out.println(str);
 				out.write(str + "\n");
 				out.flush();
 			} catch (Exception e) {
@@ -241,5 +270,31 @@ public class Client {
 
 		}
 	}
+	
+	public static void disableBtn(Double pointx, Double pointy, SecondWindow win2) {
+		// debug print
+		System.out.println("=====disableBtn=======111111111======");
+		Point p = new Point();
+		System.out.println("=====disableBtn=======333333333======");
+		p.setLocation(pointx, pointy);
+		System.out.println("=====disableBtn=======444444444======");
+		JButton button = (JButton) win2.boardPanel.getComponentAt(p);
+		
+		// debug print
+		System.out.println("=====disableBtn=======222222222=======");
+		System.out.println(button);
+		
+		button.setEnabled(false);
+	}
 
+	public static boolean isJSONValid(String test) {
+	    try {
+	        new JSONObject(test);
+	    } catch (JSONException ex) {
+	            return false;
+	        
+	    }
+	    return true;
+	}
+	
 }

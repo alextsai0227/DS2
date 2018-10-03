@@ -5,6 +5,9 @@ import java.net.Socket;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import javax.net.ServerSocketFactory;
+
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +19,7 @@ public class Server extends Thread {
 	public static ArrayList<MyThread> gameConnection = new ArrayList<MyThread>();
 	public static Map<Integer,Game> games = new HashMap<Integer,Game>();
 	public static ArrayList<Boolean> status=new ArrayList<Boolean>();
+	public static int numGames=0;
 	public Server() {
 	}
 	public static void main(String[] args) 
@@ -72,4 +76,19 @@ public class Server extends Thread {
 			}
 		}
 	}
+	
+	public void submit(ArrayList<String> playerNames,String name, JSONObject jsonobj)
+	{
+
+		for(int i=0;i<playerNames.size();i++)
+		{
+			for(int j=0;j<gameConnection.size();j++)
+			{
+				if (gameConnection.get(j).getClientName().equals(playerNames.get(i)) && !gameConnection.get(j).getClientName().equals(name)) {
+					gameConnection.get(j).submited(jsonobj);
+				}
+			}
+		}
+	}
+	
 }

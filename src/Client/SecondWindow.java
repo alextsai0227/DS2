@@ -28,7 +28,7 @@ import org.json.JSONObject;
 public class SecondWindow {
 
 	JFrame frame;
-	private JPanel boardPanel;
+	JPanel boardPanel;
 	private JPanel userPanel;
 	private JButton submitButton;
 	private JButton voteButton;
@@ -56,6 +56,7 @@ public class SecondWindow {
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
 		boardPanel = new JPanel();
+		boardPanel.setVisible(true);
 		boardPanel.setLayout(new GridLayout(20, 20));
 		frame.getContentPane().add(boardPanel, BorderLayout.CENTER);
 		addGameBoard();
@@ -136,6 +137,7 @@ public class SecondWindow {
 				button.setEnabled(false);
 				
 				JSONObject jsonobj = generateJSON("submit", position, null, name);
+				jsonobj.put("connect", 5);
 				new Client().submit(jsonobj);
 				
 				

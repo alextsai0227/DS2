@@ -23,6 +23,7 @@ public class MyThread extends Server {
 	public ArrayList<Boolean> status=new ArrayList<Boolean>();
 	public int numGames=0;
 	public int gameID;
+	public int playgameID;
 
 	public MyThread(Socket client, String user, ArrayList<String> names, ArrayList<MyThread> gameConnection,Map<Integer,Game> games,ArrayList<Boolean> status) {
 		this.clientSocket = client;
@@ -40,6 +41,12 @@ public class MyThread extends Server {
 			while (flag) {
 				try {
 					String str = buf.readLine();
+					
+					//debug print
+					System.out.println("===========Server: str===========");
+					System.out.println(str);
+					
+					
 					JSONObject jsonobj = new JSONObject(str);
 					if (jsonobj.get("connect").equals("0")) { //disconnect
 						disconnect();
@@ -53,11 +60,11 @@ public class MyThread extends Server {
 							if(!userNames[i].equals(this.name))
 								players.add(userNames[i]);
 						}
-						gameID=numGames;
+						gameID=super.numGames;
 						super.invite(players, names, gameConnection,name,gameID);
 						Game game=new Game(players,name);
 						games.put(gameID, game);
-						numGames++;
+						super.numGames++;
 					}else if(jsonobj.get("connect").equals("3")) {//respond invite
 						gameID= Integer.parseInt((String) jsonobj.get("gameID"));
 						
@@ -105,8 +112,13 @@ public class MyThread extends Server {
 						super.broadcast(names, gameConnection, status);
 					}else if (jsonobj.get("command").equals("submit")) 
 					{
-						System.out.println("lookat port1:" + jsonobj.get("port"));
-						System.out.println("lookat port2:" + clientSocket.getPort());
+						for(int j=0;j<gameConnection.size();j++)
+						{
+							System.out.println(gameConnection.get(j).name);
+							System.out.println(gameID);
+							System.out.println(games.get(gameID).names);
+						}
+						super.submit(games.get(gameID).names, jsonobj.get("playerName").toString(), jsonobj);
 						if (jsonobj.get("playerName").equals(clientSocket.getPort())) {
 								
 						}
@@ -183,4 +195,23 @@ public class MyThread extends Server {
 			e.printStackTrace();
 		}
 	}
+	
+	public void submited(JSONObject jsonobj) {
+		try {
+			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
+			String str = jsonobj.toString();
+			// sent message to client
+			out.write(str + "\n");
+			out.flush();
+		}catch (SocketException ex) {
+			ex.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String getClientName() {
+		return this.name;
+	}
+	
 }
