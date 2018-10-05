@@ -44,7 +44,12 @@ public class Client {
 			System.out.println("Connection established");
 			String message = null;
 			while ((message = in.readLine()) != null) {
-				
+				if(message.equals("duplicat user name")) {
+					System.out.println(message);
+					System.out.println("Connection close");
+					socket.close();
+					System.exit(0);
+				}
 				// debug print
 				System.out.println("What is message");
 				System.out.println(message);

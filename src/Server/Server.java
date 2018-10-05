@@ -2,8 +2,12 @@ package Server;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+
 import javax.net.ServerSocketFactory;
 
 import org.json.JSONObject;
@@ -33,14 +37,27 @@ public class Server extends Thread {
 				Socket socket = server.accept();
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 				String userName = in.readLine();
-				names.add(userName);
-				System.out.println("Client " + userName + ": Applying for connection!");
-				MyThread t = new MyThread(socket, userName, names, gameConnection,games,status);
-				t.start();
-				gameConnection.add(t);
-				status.add(true);
-				for (int i = 0; i < names.size(); i++) {
-					gameConnection.get(i).update(names,status);
+				if(names.contains(userName)) {
+					try {
+						BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+						out.write("duplicat user name");
+						out.flush();
+					} catch (SocketException ex) {
+						ex.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					socket.close();
+				}else {
+					names.add(userName);
+					System.out.println("Client " + userName + ": Applying for connection!");
+					MyThread t = new MyThread(socket, userName, names, gameConnection,games,status);
+					t.start();
+					gameConnection.add(t);
+					status.add(true);
+					for (int i = 0; i < names.size(); i++) {
+						gameConnection.get(i).update(names,status);
+					}					
 				}
 			}
 		} catch (IOException e) {
