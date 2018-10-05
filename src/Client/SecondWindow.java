@@ -21,6 +21,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.json.JSONObject;
+import java.util.Arrays;
 
 /**
  * @author ZIYANG XIE StudentID 870523 23 Sep. 2018-10:12:51 am
@@ -51,7 +52,7 @@ public class SecondWindow {
 	public void initialize(String name, ArrayList<String> playerNames) {
 		frame = new JFrame(name);
 		frame.setVisible(true);
-		frame.setBounds(100, 100, 1350, 900);
+		frame.setBounds(100, 100, 1199, 749);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
@@ -89,21 +90,30 @@ public class SecondWindow {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				String inputValue = JOptionPane.showInputDialog("Input your words(Insert a \",\" among words):");
-				if (inputValue != null) {
-					inputWords = inputValue.split(",");
-					System.out.println(inputWords);
+				
+				if (position.get("x") == null ) {
+					JOptionPane.showMessageDialog(null, "You Should Put a Letter on Tile to Vote", "Waring", 2);
+				}else {
 					Point p = new Point();
 					p.setLocation(Double.parseDouble(position.get("x").toString()),
 							Double.parseDouble(position.get("y").toString()));
 					JButton button = (JButton) boardPanel.getComponentAt(p);
-					button.setEnabled(false);
-					position.clear();
-					//change player score
-					changeScore();
-					disableCounter++;
-					if (disableCounter == 400) {
-						System.out.println("Game Over!!!!!");
+					if (button.getText()!= null && button.getText().equals("")) {
+						JOptionPane.showMessageDialog(null, "You Should Put a Letter on Tile to Vote", "Waring", 2);
+					}else {
+						String inputValue = JOptionPane.showInputDialog("Input your words(Insert a \",\" among words):");
+						if (inputValue != null) {
+							button.setEnabled(false);
+							// msg to server 
+							JSONObject jsonobj = generateJSON("vote", position, inputValue, name);
+							jsonobj.put("connect", 5);
+							jsonobj.put("letter", button.getText());
+							new Client().vote(jsonobj);
+							submitButton.setEnabled(false);
+							voteButton.setEnabled(false);
+							passButton.setEnabled(false);
+							position.clear();
+						}
 					}
 				}
 			}
@@ -116,10 +126,20 @@ public class SecondWindow {
 				// TODO Auto-generated method stub
 				// pass to next player
 				Point p = new Point();
-				p.setLocation(Double.parseDouble(position.get("x").toString()),
-						Double.parseDouble(position.get("y").toString()));
-				JButton button = (JButton) boardPanel.getComponentAt(p);
-				button.setText("");
+				if (position.get("x") != null) {
+					p.setLocation(Double.parseDouble(position.get("x").toString()),
+							Double.parseDouble(position.get("y").toString()));
+					JButton button = (JButton) boardPanel.getComponentAt(p);
+					button.setText("");
+				}
+
+				// msg to server 
+				JSONObject jsonobj = generateJSON("pass", null, null, name);
+				jsonobj.put("connect", 5);
+				new Client().pass(jsonobj);
+				submitButton.setEnabled(false);
+				voteButton.setEnabled(false);
+				passButton.setEnabled(false);
 				position.clear();
 			}
 
@@ -131,22 +151,30 @@ public class SecondWindow {
 				// TODO Auto-generated method stub
 				// submit the character without vote
 				Point p = new Point();
-				p.setLocation(Double.parseDouble(position.get("x").toString()),
-						Double.parseDouble(position.get("y").toString()));
-				JButton button = (JButton) boardPanel.getComponentAt(p);
-				button.setEnabled(false);				
-				JSONObject jsonobj = generateJSON("submit", position, null, name);
-				jsonobj.put("connect", 5);
-				jsonobj.put("letter", button.getText());
-				new Client().submit(jsonobj);
-				submitButton.setEnabled(false);
-				voteButton.setEnabled(false);
-				passButton.setEnabled(false);	
-				position.clear();
-				disableCounter++;
-				if (disableCounter == 400) {
-					System.out.println("Game Over!!!!!");
+				
+				if (position.get("x") != null ) {
+					p.setLocation(Double.parseDouble(position.get("x").toString()),
+							Double.parseDouble(position.get("y").toString()));
+					JButton button = (JButton) boardPanel.getComponentAt(p);
+					if (button.getText()!= null && button.getText().equals("")) {
+						JOptionPane.showMessageDialog(null, "You Should Put a Letter on Tile to Submit", "Waring", 2);
+					}else {
+						// msg to server 
+						JSONObject jsonobj = generateJSON("submit", position, null, name);
+						jsonobj.put("connect", 5);
+						jsonobj.put("letter", button.getText());
+						button.setEnabled(false);
+						new Client().submit(jsonobj);
+						submitButton.setEnabled(false);
+						voteButton.setEnabled(false);
+						passButton.setEnabled(false);			
+						position.clear();
+					}
+
+				}else {
+					JOptionPane.showMessageDialog(null, "You Should Put a Letter on Tile to Submit", "Waring", 2);
 				}
+				
 			}
 
 		});
@@ -165,6 +193,9 @@ public class SecondWindow {
 			JLabel score = new JLabel(String.valueOf(scoreOfPlayer[i]));
 			scorePanel.add(player);
 			scorePanel.add(score);
+			System.out.println("===========getComponentCount()=======");
+			System.out.println(scorePanel.getComponentCount());
+
 			resultPanel.add(scorePanel, i + 1);
 		}
 
@@ -238,15 +269,21 @@ public class SecondWindow {
 	}
 
 	
-	private void changeScore() {
-		for (int i = 0; i < inputWords.length; i++) {
-			scoreOfPlayer[0] = scoreOfPlayer[0] + inputWords[i].length();
-		}
-		scoreOfPlayer[0] = scoreOfPlayer[0] - inputWords.length + 1;
-		JPanel tempPanel = (JPanel) resultPanel.getComponent(1);
+	public void changeScore(int score, int index) {
+		
+		int indexOflabel = index+1;
+		System.out.println("===========indexoflabel=======");
+		System.out.println(indexOflabel);
+		JPanel tempPanel = (JPanel) resultPanel.getComponent(indexOflabel);
+		System.out.println("===========tempPanel=======");
+		System.out.println(tempPanel.getComponentCount());
 		JLabel tempLable = (JLabel) tempPanel.getComponent(1);
-		tempLable.setText(String.valueOf(scoreOfPlayer[0]));
+		System.out.println("===========What!!!!!!!!!!=======");
+		score += Integer.valueOf(tempLable.getText());
+		System.out.println(tempLable.getText());
+		tempLable.setText(String.valueOf(score));
 	}
+	
 	/**
 	 * @return the frame
 	 */
@@ -268,6 +305,7 @@ public class SecondWindow {
 
 			  jsonobj.put("command", command);
 			  jsonobj.put("playerName", name);
+			  jsonobj.put("isGameOver", "N");
 			  switch(command){
 			  case "submit":
 				  jsonobj.put("pointx", position.get("x").toString());

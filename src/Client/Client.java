@@ -28,6 +28,8 @@ public class Client {
 	static Scanner keyBoard = new Scanner(System.in);
 	static Client client;
 	static int gameID;
+	static ArrayList<String> playerOrder;
+	static Boolean isPlaying = false;
 
 	public Client() {
 	};
@@ -46,6 +48,7 @@ public class Client {
 				// debug print
 				System.out.println("What is message");
 				System.out.println(message);
+				System.out.println(socket.toString());
 				
 				String[] str = message.split(",");
 				ArrayList<String> mes = new ArrayList<String>();
@@ -53,14 +56,16 @@ public class Client {
 					mes.add(str[i]);
 				}
 				if (mes.get(0).equals("update")) {
-					if(win2.frame!=null&&win2.frame.isVisible())
-						win2.frame.setVisible(false);
-					if (win.frame != null)
-						win.frame.setVisible(false);
-					if(win.fw.isVisible())
-						win.fw.setVisible(false);
-					mes.remove(0);
-					win.initialize(mes, name);
+					if (!isPlaying) {
+						if(win2.frame!=null&&win2.frame.isVisible())
+							win2.frame.setVisible(false);
+						if (win.frame != null)
+							win.frame.setVisible(false);
+						if(win.fw.isVisible())
+							win.fw.setVisible(false);
+						mes.remove(0);
+						win.initialize(mes, name);
+					}
 				}
 				if (mes.size() > 1) {
 					if (mes.get(0).equals("invited")) {
@@ -77,36 +82,81 @@ public class Client {
 						win.frame.setVisible(false);
 						win.fw.setVisible(false);
 						win2.initialize(name, playerNames);
+						win2.frame.setBounds(100, 100, 1200, 750);
+						win2.frame.setResizable(false);
+						isPlaying = true;
+						playerOrder = playerNames;
 						if (!name.equals(mes.get(1))) {
 							controlBtn(false, win2);
 						}
 						
 					}
 				}
-				
+
 				if(isJSONValid(message)){
 					JSONObject jsonobj = new JSONObject(message);
-					System.out.println("debug");
-					System.out.println(isJSONValid(message));
-
-					if (jsonobj.get("command").equals("submit")) { 
-						System.out.println("=====inhere======111111");
-						System.out.println(Double.parseDouble(jsonobj.get("pointy").toString()));
-						Double pointx = Double.parseDouble(jsonobj.get("pointx").toString());
-						System.out.println("=====inhere======222222");
-						Double pointy = Double.parseDouble(jsonobj.get("pointy").toString());
-						System.out.println("=====inhere======333333");
-						String letter = jsonobj.get("letter").toString();
-						disableBtn(pointx, pointy, win2, letter);
-					}
-					
-					System.out.println("=====whoShouldPlay======");
+					System.out.println("=============jsonobj============");
 					System.out.println(jsonobj.toString());
-					System.out.println(name);
-					if(jsonobj.get("whoShouldPlay").equals(name)) {
-						controlBtn(true, win2);		
+					if (jsonobj.get("command").equals("submit")) { 
+						disableLetterBtn(win2, jsonobj);
+						if(jsonobj.get("whoShouldPlay").equals(name)) {
+							controlBtn(true, win2);		
+						}
+					}else if (jsonobj.get("command").equals("vote")) {
+						disableLetterBtn(win2, jsonobj);
+						String wordToVote = jsonobj.get("words").toString();
+						String question = "Do you agree " + wordToVote +" is a word?"; 	
+						int reply = JOptionPane.showConfirmDialog(null, question, "Vote", JOptionPane.YES_NO_OPTION);
+						if (reply == JOptionPane.YES_OPTION) {	        
+							jsonobj.put("votefor", "yes");
+						}else{
+							jsonobj.put("votefor", "no");
+						}
+						jsonobj.put("command", "voted");
+						voted(jsonobj);
+						System.out.println("voted end 4");
+						System.out.println("voted end 5");
+					}else if (jsonobj.get("command").equals("voted")) {
+						System.out.println("=============OH!!!!!!!!!!!============");
+						if(jsonobj.get("whoShouldPlay").equals(name)) {
+							controlBtn(true, win2);		
+						}
+						if(jsonobj.has("updateScore")) {
+							System.out.println("=============yeah!!!!!!!!!!!============");
+							int score = (Integer) jsonobj.get("updateScore");
+							System.out.println(score);
+							int index = playerOrder.indexOf(jsonobj.get("playerName"));
+							System.out.println("=============index!!!!!!!!!!!============");
+							System.out.println(index);
+							win2.changeScore(score, index);
+						}
+					}else if (jsonobj.get("command").equals("pass")) { 
+						if(jsonobj.get("whoShouldPlay").equals(name)) {
+							controlBtn(true, win2);		
+						}
+						if (jsonobj.get("isGameOver").equals("Y")) {
+							JOptionPane.showMessageDialog(null, "Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
+							back();
+						}
+					}else if (jsonobj.get("command").equals("gameOver")) { 
+						JOptionPane.showMessageDialog(null, "Someone leaves, Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
+						if(win2.frame!=null&&win2.frame.isVisible())
+							win2.frame.setVisible(false);
+						if (win.frame != null)
+							win.frame.setVisible(false);
+						if(win.fw.isVisible())
+							win.fw.setVisible(false);
+						String availablePlayer = jsonobj.get("update").toString();
+						String[] players = availablePlayer.split(",");
+						ArrayList<String> playerList = new ArrayList<String>();
+						for (int i = 1; i < players.length; i++) {
+							playerList.add(players[i]);
+						}
+						win.initialize(playerList, name);
 					}
 				}
+				
+				System.out.println("=============END!!!!!!!!!!!============");
 			}
 		} catch (Exception e) {
 		}
@@ -172,7 +222,7 @@ public class Client {
 			}
 		}
 	}
-	public void back()
+	public static void back()
 	{
 		// TODO Auto-generated method stub
 				if (!socket.isClosed()) {
@@ -184,10 +234,12 @@ public class Client {
 						JOptionPane.showMessageDialog(null, "Something wrong when disconnecting to the server!", "Error",
 								JOptionPane.ERROR_MESSAGE);
 					}
+					isPlaying = false;
 					// generate request message
 					JSONObject jsonobj = new JSONObject();
 					jsonobj.put("connect", "4");
 					jsonobj.put("gameID",String.valueOf(gameID));
+					jsonobj.put("playerName", name);
 					String str = jsonobj.toString();
 					// set message to server
 					out.println(str);
@@ -263,7 +315,7 @@ public class Client {
 				out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
-				JOptionPane.showMessageDialog(null, "Something wrong when inviting players!", "Error",
+				JOptionPane.showMessageDialog(null, "Something wrong when submit the letter!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			}
 
@@ -282,19 +334,93 @@ public class Client {
 		}
 	}
 	
-	public static void disableBtn(Double pointx, Double pointy, SecondWindow win2, String letter) {
-		// debug print
-		System.out.println("=====disableBtn=======111111111======");
+	public void vote(JSONObject jsonobj) {
+		if (!socket.isClosed()) {
+			BufferedWriter out = null;
+			try {
+				out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				JOptionPane.showMessageDialog(null, "Something wrong when vote the words!", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}
+
+			try {
+				String str = jsonobj.toString();
+				// set message to server
+				System.out.println("Client vote");
+				System.out.println(str);
+				out.write(str + "\n");
+				out.flush();
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}
+
+		}
+	}
+
+	public static void voted(JSONObject jsonobj) {
+		if (!socket.isClosed()) {
+			BufferedWriter out = null;
+			try {
+				out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				JOptionPane.showMessageDialog(null, "Something wrong when vote the words!", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}
+
+			try {
+				String str = jsonobj.toString();
+				// set message to server
+				System.out.println("Client voted");
+				System.out.println(str);
+				out.write(str + "\n");
+				out.flush();
+				System.out.println("voted end");
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}
+			System.out.println("voted end 2");
+		}
+		System.out.println("voted end 3");
+	}
+	
+	public void pass(JSONObject jsonobj) {
+		if (!socket.isClosed()) {
+			BufferedWriter out = null;
+			try {
+				out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				JOptionPane.showMessageDialog(null, "Something wrong when pass!", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}
+
+			try {
+				String str = jsonobj.toString();
+				// set message to server
+				System.out.println("Client pass");
+				System.out.println(str);
+				out.write(str + "\n");
+				out.flush();
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}
+
+		}
+	}
+	
+	public static void disableLetterBtn(SecondWindow win2, JSONObject jsonobj) {
+		Double pointx = Double.parseDouble(jsonobj.get("pointx").toString());
+		Double pointy = Double.parseDouble(jsonobj.get("pointy").toString());
+		String letter = jsonobj.get("letter").toString();
 		Point p = new Point();
-		System.out.println("=====disableBtn=======333333333======");
 		p.setLocation(pointx, pointy);
-		System.out.println("=====disableBtn=======444444444======");
-		JButton button = (JButton) win2.boardPanel.getComponentAt(p);
-		
-		// debug print
-		System.out.println("=====disableBtn=======222222222=======");
-		System.out.println(button);
-		
+		JButton button = (JButton) win2.boardPanel.getComponentAt(p);		
 		button.setText(letter);
 		button.setEnabled(false);
 	}

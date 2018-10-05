@@ -77,17 +77,131 @@ public class Server extends Thread {
 		}
 	}
 	
-	public void submit(ArrayList<String> playerNames,String name, JSONObject jsonobj)
+	public void submit(ArrayList<String> playerNames,String name, JSONObject jsonobj,Game game)
 	{
-
+		game.passInRow = 0;
 		for(int i=0;i<playerNames.size();i++)
 		{
 			for(int j=0;j<gameConnection.size();j++)
 			{
 				if (gameConnection.get(j).getClientName().equals(playerNames.get(i)) && !gameConnection.get(j).getClientName().equals(name)) {
-					gameConnection.get(j).submited(jsonobj);
+					gameConnection.get(j).msgToClient(jsonobj);
 				}
 			}
+		}
+	}
+
+	public void vote(ArrayList<String> playerNames,String name, JSONObject jsonobj, Game game)
+	{
+		game.passInRow = 0;
+		for(int i=0;i<playerNames.size();i++)
+		{
+			for(int j=0;j<gameConnection.size();j++)
+			{
+				if (gameConnection.get(j).getClientName().equals(playerNames.get(i)) && !gameConnection.get(j).getClientName().equals(name)) {
+					gameConnection.get(j).msgToClient(jsonobj);
+				}
+			}
+		}
+	}
+	
+	public void voted(ArrayList<String> playerNames,String name, JSONObject jsonobj,Game game)
+	{
+		if (jsonobj.get("votefor").equals("yes")){
+			game.response_yes += 1;
+			game.vote_response += 1;
+		}else {
+			game.vote_response += 1;
+		}
+		System.out.println("===========jsonobj==========");
+		System.out.println(jsonobj.toString());
+		System.out.println("=======game.response_yes==========");
+		System.out.println(game.response_yes);
+		System.out.println("=======game.vote_response==========");
+		System.out.println(game.vote_response);
+		
+		System.out.println("=======playerNames.size() - 1==========");
+		System.out.println(playerNames.size() - 1);
+		if (game.vote_response == playerNames.size() - 1) {
+			if (game.response_yes == playerNames.size() - 1) {
+				// compute score
+				int score = 0;
+				String words = jsonobj.get("words").toString();
+					if (words.contains(",")) {
+						score += words.length() - 2;
+					}else {
+						score += words.length();
+					}
+				jsonobj.put("updateScore", score);
+			}
+			for(int i=0;i<playerNames.size();i++)
+			{
+
+				for(int j=0;j<gameConnection.size();j++)
+				{
+
+					if (jsonobj.has("updateScore")) {
+						if (gameConnection.get(j).getClientName().equals(playerNames.get(i))){
+							gameConnection.get(j).msgToClient(jsonobj);
+						}
+					}else {
+						if (gameConnection.get(j).getClientName().equals(playerNames.get(i)) && !gameConnection.get(j).getClientName().equals(name)) {
+							gameConnection.get(j).msgToClient(jsonobj);
+						}
+					}
+					
+
+				}
+			}			
+			game.response_yes = 0;
+			game.vote_response = 0;
+		}
+	}
+	
+	public void pass(ArrayList<String> playerNames,String name, JSONObject jsonobj, Game game)
+	{
+		game.passInRow += 1;
+		System.out.println("=======game.passInRow=========");
+		System.out.println(game.passInRow);
+		Boolean isGameOver = false;
+		if (game.passInRow == playerNames.size()) {
+			isGameOver = true;
+		}
+		for(int i=0;i<playerNames.size();i++)
+		{
+			for(int j=0;j<gameConnection.size();j++)
+			{
+				if(isGameOver) {
+					if (gameConnection.get(j).getClientName().equals(playerNames.get(i))) {
+						jsonobj.put("isGameOver", "Y");
+						gameConnection.get(j).msgToClient(jsonobj);
+					}
+				}else {
+					if (gameConnection.get(j).getClientName().equals(playerNames.get(i)) && !gameConnection.get(j).getClientName().equals(name)) {
+						gameConnection.get(j).msgToClient(jsonobj);
+					}
+				}
+
+			}
+		}
+	}
+	
+	public void gameOver(ArrayList<String> names, ArrayList<MyThread> gameConnection, ArrayList<String> gamePlayers, String playerName, ArrayList<Boolean> status) {
+		String availablePlayer = "update";
+		for (int i = 0; i < names.size(); i++) {
+			if(status.get(i))
+				availablePlayer = availablePlayer + "," + names.get(i);
+		}
+		
+		for(int i=0;i<gamePlayers.size();i++)
+		{
+			for(int j=0;j<gamePlayers.size();j++)
+				if(gamePlayers.get(i).equals(gameConnection.get(j).getClientName()) && !gamePlayers.get(i).equals(playerName)) {
+					JSONObject jsonobj = new JSONObject();
+					jsonobj.put("command", "gameOver");
+					jsonobj.put("update", availablePlayer);
+					gameConnection.get(j).msgToClient(jsonobj);
+				}
 		}
 	}
 	
