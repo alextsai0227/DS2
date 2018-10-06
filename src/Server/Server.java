@@ -28,7 +28,6 @@ public class Server extends Thread {
 	}
 	public static void main(String[] args) 
 	{
-		System.out.println("=====new======");
 		port = 4000;
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		try (ServerSocket server = factory.createServerSocket(port)) {
@@ -130,15 +129,6 @@ public class Server extends Thread {
 		}else {
 			game.vote_response += 1;
 		}
-		System.out.println("===========jsonobj==========");
-		System.out.println(jsonobj.toString());
-		System.out.println("=======game.response_yes==========");
-		System.out.println(game.response_yes);
-		System.out.println("=======game.vote_response==========");
-		System.out.println(game.vote_response);
-		
-		System.out.println("=======playerNames.size() - 1==========");
-		System.out.println(playerNames.size() - 1);
 		if (game.vote_response == playerNames.size() - 1) {
 			if (game.response_yes == playerNames.size() - 1) {
 				// compute score
@@ -178,8 +168,6 @@ public class Server extends Thread {
 	public void pass(ArrayList<String> playerNames,String name, JSONObject jsonobj, Game game)
 	{
 		game.passInRow += 1;
-		System.out.println("=======game.passInRow=========");
-		System.out.println(game.passInRow);
 		Boolean isGameOver = false;
 		if (game.passInRow == playerNames.size()) {
 			isGameOver = true;

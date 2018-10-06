@@ -6,6 +6,7 @@ public class Game {
 	public int vote_response = 0;
 	public int response_yes = 0;
 	public int passInRow = 0;
+	public int tileCount=0;
 	public Game(ArrayList<String> names,String name)
 	{
 		this.names=names;

@@ -14,6 +14,8 @@ import java.net.Socket;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.util.Scanner;
 
 public class FirstWindow  {
@@ -54,14 +56,21 @@ public class FirstWindow  {
 						players.add(checkBox.get(i).getActionCommand());
 					}
 				}
-				fw = new JFrame(name);
-				frame.setEnabled(false);
-				fw.setBounds(100, 100, 400, 200);
-				JLabel label = new JLabel("Waiting", JLabel.CENTER);
-				label.setBounds(100, 100, 400, 200);
-				fw.add(label);
-				fw.setVisible(true);
-				new Client().invitePlayer(players);
+				
+				if (players.isEmpty()) {
+					JOptionPane.showMessageDialog(null, "You Should Invite at least one player", "Error",
+							JOptionPane.ERROR_MESSAGE);
+				}else {
+					fw = new JFrame(name);
+					frame.setEnabled(false);
+					fw.setBounds(100, 100, 400, 200);
+					JLabel label = new JLabel("Waiting", JLabel.CENTER);
+					label.setBounds(100, 100, 400, 200);
+					fw.add(label);
+					fw.setVisible(true);
+					new Client().invitePlayer(players);		
+				}
+
 			}
 		});
 		btnInvite.setBounds(49, 326, 137, 45);

@@ -193,8 +193,6 @@ public class SecondWindow {
 			JLabel score = new JLabel(String.valueOf(scoreOfPlayer[i]));
 			scorePanel.add(player);
 			scorePanel.add(score);
-			System.out.println("===========getComponentCount()=======");
-			System.out.println(scorePanel.getComponentCount());
 
 			resultPanel.add(scorePanel, i + 1);
 		}
@@ -264,23 +262,16 @@ public class SecondWindow {
 
 	private void exit() {
 		// TODO Auto-generated method stub
-		new Client().back();
+		new Client().back("Y");
 		frame.setVisible(false);
 	}
 
 	
-	public void changeScore(int score, int index) {
-		
+	public void changeScore(int score, int index) {	
 		int indexOflabel = index+1;
-		System.out.println("===========indexoflabel=======");
-		System.out.println(indexOflabel);
 		JPanel tempPanel = (JPanel) resultPanel.getComponent(indexOflabel);
-		System.out.println("===========tempPanel=======");
-		System.out.println(tempPanel.getComponentCount());
 		JLabel tempLable = (JLabel) tempPanel.getComponent(1);
-		System.out.println("===========What!!!!!!!!!!=======");
 		score += Integer.valueOf(tempLable.getText());
-		System.out.println(tempLable.getText());
 		tempLable.setText(String.valueOf(score));
 	}
 	

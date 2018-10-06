@@ -50,10 +50,6 @@ public class Client {
 					socket.close();
 					System.exit(0);
 				}
-				// debug print
-				System.out.println("What is message");
-				System.out.println(message);
-				System.out.println(socket.toString());
 				
 				String[] str = message.split(",");
 				ArrayList<String> mes = new ArrayList<String>();
@@ -100,8 +96,6 @@ public class Client {
 
 				if(isJSONValid(message)){
 					JSONObject jsonobj = new JSONObject(message);
-					System.out.println("=============jsonobj============");
-					System.out.println(jsonobj.toString());
 					if (jsonobj.get("command").equals("submit")) { 
 						disableLetterBtn(win2, jsonobj);
 						if(jsonobj.get("whoShouldPlay").equals(name)) {
@@ -119,20 +113,13 @@ public class Client {
 						}
 						jsonobj.put("command", "voted");
 						voted(jsonobj);
-						System.out.println("voted end 4");
-						System.out.println("voted end 5");
 					}else if (jsonobj.get("command").equals("voted")) {
-						System.out.println("=============OH!!!!!!!!!!!============");
 						if(jsonobj.get("whoShouldPlay").equals(name)) {
 							controlBtn(true, win2);		
 						}
 						if(jsonobj.has("updateScore")) {
-							System.out.println("=============yeah!!!!!!!!!!!============");
 							int score = (Integer) jsonobj.get("updateScore");
-							System.out.println(score);
 							int index = playerOrder.indexOf(jsonobj.get("playerName"));
-							System.out.println("=============index!!!!!!!!!!!============");
-							System.out.println(index);
 							win2.changeScore(score, index);
 						}
 					}else if (jsonobj.get("command").equals("pass")) { 
@@ -141,7 +128,7 @@ public class Client {
 						}
 						if (jsonobj.get("isGameOver").equals("Y")) {
 							JOptionPane.showMessageDialog(null, "Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
-							back();
+							back("N");
 						}
 					}else if (jsonobj.get("command").equals("gameOver")) { 
 						JOptionPane.showMessageDialog(null, "Someone leaves, Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
@@ -160,8 +147,6 @@ public class Client {
 						win.initialize(playerList, name);
 					}
 				}
-				
-				System.out.println("=============END!!!!!!!!!!!============");
 			}
 		} catch (Exception e) {
 		}
@@ -227,7 +212,7 @@ public class Client {
 			}
 		}
 	}
-	public static void back()
+	public static void back(String isPlayerLeave)
 	{
 		// TODO Auto-generated method stub
 				if (!socket.isClosed()) {
@@ -245,6 +230,7 @@ public class Client {
 					jsonobj.put("connect", "4");
 					jsonobj.put("gameID",String.valueOf(gameID));
 					jsonobj.put("playerName", name);
+					jsonobj.put("isPlayerLeave", isPlayerLeave);
 					String str = jsonobj.toString();
 					// set message to server
 					out.println(str);
@@ -327,8 +313,6 @@ public class Client {
 			try {
 				String str = jsonobj.toString();
 				// set message to server
-				System.out.println("Client submit");
-				System.out.println(str);
 				out.write(str + "\n");
 				out.flush();
 			} catch (Exception e) {
@@ -353,8 +337,6 @@ public class Client {
 			try {
 				String str = jsonobj.toString();
 				// set message to server
-				System.out.println("Client vote");
-				System.out.println(str);
 				out.write(str + "\n");
 				out.flush();
 			} catch (Exception e) {
@@ -379,18 +361,13 @@ public class Client {
 			try {
 				String str = jsonobj.toString();
 				// set message to server
-				System.out.println("Client voted");
-				System.out.println(str);
 				out.write(str + "\n");
 				out.flush();
-				System.out.println("voted end");
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			}
-			System.out.println("voted end 2");
 		}
-		System.out.println("voted end 3");
 	}
 	
 	public void pass(JSONObject jsonobj) {
@@ -407,8 +384,6 @@ public class Client {
 			try {
 				String str = jsonobj.toString();
 				// set message to server
-				System.out.println("Client pass");
-				System.out.println(str);
 				out.write(str + "\n");
 				out.flush();
 			} catch (Exception e) {

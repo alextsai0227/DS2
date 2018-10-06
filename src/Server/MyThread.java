@@ -23,7 +23,6 @@ public class MyThread extends Server {
 	public ArrayList<Boolean> status=new ArrayList<Boolean>();
 	public int numGames=0;
 	public int gameID;
-	public int playgameID;
 
 	public MyThread(Socket client, String user, ArrayList<String> names, ArrayList<MyThread> gameConnection,Map<Integer,Game> games,ArrayList<Boolean> status) {
 		this.clientSocket = client;
@@ -41,10 +40,6 @@ public class MyThread extends Server {
 			while (flag) {
 				try {
 					String str = buf.readLine();
-					
-					//debug print
-					System.out.println("===========Server: str===========");
-					System.out.println(str);
 					
 					
 					JSONObject jsonobj = new JSONObject(str);
@@ -109,28 +104,43 @@ public class MyThread extends Server {
 								if(games.get(gameID).names.get(i).equals(names.get(j)))
 									status.set(j, true);
 						}
-						super.gameOver(names, gameConnection,games.get(gameID).names, jsonobj.get("playerName").toString(), status);
+						if(jsonobj.get("isPlayerLeave").equals("Y")) {
+							super.gameOver(names, gameConnection,games.get(gameID).names, jsonobj.get("playerName").toString(), status);
+						}
 						super.broadcast(names, gameConnection, status);
 					}else if (jsonobj.get("command").equals("submit")) 
 					{
-						// debug print
-//						System.out.println("========see===========");
-//						System.out.println(games.get(gameID).names);
-//						String playerName = jsonobj.get("playerName").toString();
-//						int whoShouldPlay = games.get(gameID).names.indexOf(playerName) + 1;
-//						if (whoShouldPlay >= games.get(gameID).names.size()) {
-//							whoShouldPlay = 0;
-//						}
-//						System.out.println(whoShouldPlay);
+						games.get(gameID).tileCount += 1;
 						jsonobj.put("whoShouldPlay", games.get(gameID).names.get(whoShouldPlay(jsonobj)));
 						super.submit(games.get(gameID).names, jsonobj.get("playerName").toString(), jsonobj, games.get(gameID));
+						if (games.get(gameID).tileCount == 400) {
+							gameID= Integer.parseInt((String) jsonobj.get("gameID"));
+							for(int i=0;i<games.get(gameID).names.size();i++)
+							{
+								for(int j=0;j<names.size();j++)
+									if(games.get(gameID).names.get(i).equals(names.get(j)))
+										status.set(j, true);
+							}
+							super.gameOver(names, gameConnection,games.get(gameID).names, jsonobj.get("playerName").toString(), status);
+						}
 					}else if (jsonobj.get("command").equals("vote")) 
 					{						
+						games.get(gameID).tileCount += 1;
 						super.vote(games.get(gameID).names, jsonobj.get("playerName").toString(), jsonobj, games.get(gameID));
 					}else if (jsonobj.get("command").equals("voted")) 
 					{						
 						jsonobj.put("whoShouldPlay", games.get(gameID).names.get(whoShouldPlay(jsonobj)));
 						super.voted(games.get(gameID).names, jsonobj.get("playerName").toString(), jsonobj, games.get(gameID));
+						if (games.get(gameID).tileCount == 400) {
+							gameID= Integer.parseInt((String) jsonobj.get("gameID"));
+							for(int i=0;i<games.get(gameID).names.size();i++)
+							{
+								for(int j=0;j<names.size();j++)
+									if(games.get(gameID).names.get(i).equals(names.get(j)))
+										status.set(j, true);
+							}
+							super.gameOver(names, gameConnection,games.get(gameID).names, jsonobj.get("playerName").toString(), status);
+						}
 					}else if (jsonobj.get("command").equals("pass")) {
 						jsonobj.put("whoShouldPlay", games.get(gameID).names.get(whoShouldPlay(jsonobj)));
 						super.pass(games.get(gameID).names, jsonobj.get("playerName").toString(), jsonobj, games.get(gameID));
@@ -212,14 +222,9 @@ public class MyThread extends Server {
 		try {
 			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
 			String str = jsonobj.toString();
-			// sent message to client
-			System.out.println("========msgToClient===========");
-			System.out.println(clientSocket.toString());
-			System.out.println(str);
-			
+			// sent message to client		
 			out.write(str + "\n");
 			out.flush();
-			System.out.println("out.flush()");
 		}catch (SocketException ex) {
 			ex.printStackTrace();
 		} catch (IOException e) {
@@ -228,15 +233,11 @@ public class MyThread extends Server {
 	}
 	
 	public int whoShouldPlay(JSONObject jsonobj) {
-		// debug print
-		System.out.println("========see===========");
-		System.out.println(games.get(gameID).names);
 		String playerName = jsonobj.get("playerName").toString();
 		int whoShouldPlay = games.get(gameID).names.indexOf(playerName) + 1;
 		if (whoShouldPlay >= games.get(gameID).names.size()) {
 			whoShouldPlay = 0;
 		}
-		System.out.println(whoShouldPlay);
 		
 		return whoShouldPlay;
 	}
