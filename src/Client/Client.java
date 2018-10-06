@@ -36,118 +36,124 @@ public class Client {
 
 	public static void main(String[] args) {
 		try {
-			name = keyBoard.nextLine();
-			FirstWindow win = new FirstWindow();
-			SecondWindow win2=new SecondWindow();
-			socket = connect("localhost", 4000, name);
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-			System.out.println("Connection established");
-			String message = null;
-			while ((message = in.readLine()) != null) {
-				if(message.equals("duplicat user name")) {
-					System.out.println(message);
-					System.out.println("Connection close");
-					socket.close();
-					System.exit(0);
-				}
-				
-				String[] str = message.split(",");
-				ArrayList<String> mes = new ArrayList<String>();
-				for (int i = 0; i < str.length; i++) {
-					mes.add(str[i]);
-				}
-				if (mes.get(0).equals("update")) {
-					if (!isPlaying) {
-						if(win2.frame!=null&&win2.frame.isVisible())
-							win2.frame.setVisible(false);
-						if (win.frame != null)
+			if (args.length < 2) {
+				System.out.println("You should enter both server_address and port");
+				System.exit(0);
+			}else {
+				name = keyBoard.nextLine();
+				FirstWindow win = new FirstWindow();
+				SecondWindow win2=new SecondWindow();
+				socket = connect(args[0], Integer.parseInt(args[1]), name);
+				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+				System.out.println("Connection established");
+				String message = null;
+				while ((message = in.readLine()) != null) {
+					if(message.equals("duplicat user name")) {
+						System.out.println(message);
+						System.out.println("Connection close");
+						socket.close();
+						System.exit(0);
+					}
+					
+					String[] str = message.split(",");
+					ArrayList<String> mes = new ArrayList<String>();
+					for (int i = 0; i < str.length; i++) {
+						mes.add(str[i]);
+					}
+					if (mes.get(0).equals("update")) {
+						if (!isPlaying) {
+							if(win2.frame!=null&&win2.frame.isVisible())
+								win2.frame.setVisible(false);
+							if (win.frame != null)
+								win.frame.setVisible(false);
+							if(win.fw.isVisible())
+								win.fw.setVisible(false);
+							mes.remove(0);
+							win.initialize(mes, name);
+						}
+					}
+					if (mes.size() > 1) {
+						if (mes.get(0).equals("invited")) {
+							mes.remove(0);
+							gameID=Integer.parseInt(mes.get(1));
+							win.invited(mes.get(0), mes.get(1));
+						}
+						if(mes.get(0).equals("play"))
+						{
+							ArrayList<String> playerNames = new ArrayList<String>();
+							for (int i = 1; i < mes.size(); i++) {
+								playerNames.add(mes.get(i));
+							}
 							win.frame.setVisible(false);
-						if(win.fw.isVisible())
 							win.fw.setVisible(false);
-						mes.remove(0);
-						win.initialize(mes, name);
-					}
-				}
-				if (mes.size() > 1) {
-					if (mes.get(0).equals("invited")) {
-						mes.remove(0);
-						gameID=Integer.parseInt(mes.get(1));
-						win.invited(mes.get(0), mes.get(1));
-					}
-					if(mes.get(0).equals("play"))
-					{
-						ArrayList<String> playerNames = new ArrayList<String>();
-						for (int i = 1; i < mes.size(); i++) {
-							playerNames.add(mes.get(i));
+							win2.initialize(name, playerNames);
+							win2.frame.setBounds(100, 100, 1200, 750);
+							win2.frame.setResizable(false);
+							isPlaying = true;
+							playerOrder = playerNames;
+							if (!name.equals(mes.get(1))) {
+								controlBtn(false, win2);
+							}
+							
 						}
-						win.frame.setVisible(false);
-						win.fw.setVisible(false);
-						win2.initialize(name, playerNames);
-						win2.frame.setBounds(100, 100, 1200, 750);
-						win2.frame.setResizable(false);
-						isPlaying = true;
-						playerOrder = playerNames;
-						if (!name.equals(mes.get(1))) {
-							controlBtn(false, win2);
-						}
-						
 					}
-				}
 
-				if(isJSONValid(message)){
-					JSONObject jsonobj = new JSONObject(message);
-					if (jsonobj.get("command").equals("submit")) { 
-						disableLetterBtn(win2, jsonobj);
-						if(jsonobj.get("whoShouldPlay").equals(name)) {
-							controlBtn(true, win2);		
+					if(isJSONValid(message)){
+						JSONObject jsonobj = new JSONObject(message);
+						if (jsonobj.get("command").equals("submit")) { 
+							disableLetterBtn(win2, jsonobj);
+							if(jsonobj.get("whoShouldPlay").equals(name)) {
+								controlBtn(true, win2);		
+							}
+						}else if (jsonobj.get("command").equals("vote")) {
+							disableLetterBtn(win2, jsonobj);
+							String wordToVote = jsonobj.get("words").toString();
+							String question = "Do you agree " + wordToVote +" is a word?"; 	
+							int reply = JOptionPane.showConfirmDialog(null, question, "Vote", JOptionPane.YES_NO_OPTION);
+							if (reply == JOptionPane.YES_OPTION) {	        
+								jsonobj.put("votefor", "yes");
+							}else{
+								jsonobj.put("votefor", "no");
+							}
+							jsonobj.put("command", "voted");
+							voted(jsonobj);
+						}else if (jsonobj.get("command").equals("voted")) {
+							if(jsonobj.get("whoShouldPlay").equals(name)) {
+								controlBtn(true, win2);		
+							}
+							if(jsonobj.has("updateScore")) {
+								int score = (Integer) jsonobj.get("updateScore");
+								int index = playerOrder.indexOf(jsonobj.get("playerName"));
+								win2.changeScore(score, index);
+							}
+						}else if (jsonobj.get("command").equals("pass")) { 
+							if(jsonobj.get("whoShouldPlay").equals(name)) {
+								controlBtn(true, win2);		
+							}
+							if (jsonobj.get("isGameOver").equals("Y")) {
+								JOptionPane.showMessageDialog(null, "Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
+								back("N");
+							}
+						}else if (jsonobj.get("command").equals("gameOver")) { 
+							JOptionPane.showMessageDialog(null, "Someone leaves, Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
+							if(win2.frame!=null&&win2.frame.isVisible())
+								win2.frame.setVisible(false);
+							if (win.frame != null)
+								win.frame.setVisible(false);
+							if(win.fw.isVisible())
+								win.fw.setVisible(false);
+							String availablePlayer = jsonobj.get("update").toString();
+							String[] players = availablePlayer.split(",");
+							ArrayList<String> playerList = new ArrayList<String>();
+							for (int i = 1; i < players.length; i++) {
+								playerList.add(players[i]);
+							}
+							win.initialize(playerList, name);
 						}
-					}else if (jsonobj.get("command").equals("vote")) {
-						disableLetterBtn(win2, jsonobj);
-						String wordToVote = jsonobj.get("words").toString();
-						String question = "Do you agree " + wordToVote +" is a word?"; 	
-						int reply = JOptionPane.showConfirmDialog(null, question, "Vote", JOptionPane.YES_NO_OPTION);
-						if (reply == JOptionPane.YES_OPTION) {	        
-							jsonobj.put("votefor", "yes");
-						}else{
-							jsonobj.put("votefor", "no");
-						}
-						jsonobj.put("command", "voted");
-						voted(jsonobj);
-					}else if (jsonobj.get("command").equals("voted")) {
-						if(jsonobj.get("whoShouldPlay").equals(name)) {
-							controlBtn(true, win2);		
-						}
-						if(jsonobj.has("updateScore")) {
-							int score = (Integer) jsonobj.get("updateScore");
-							int index = playerOrder.indexOf(jsonobj.get("playerName"));
-							win2.changeScore(score, index);
-						}
-					}else if (jsonobj.get("command").equals("pass")) { 
-						if(jsonobj.get("whoShouldPlay").equals(name)) {
-							controlBtn(true, win2);		
-						}
-						if (jsonobj.get("isGameOver").equals("Y")) {
-							JOptionPane.showMessageDialog(null, "Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
-							back("N");
-						}
-					}else if (jsonobj.get("command").equals("gameOver")) { 
-						JOptionPane.showMessageDialog(null, "Someone leaves, Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
-						if(win2.frame!=null&&win2.frame.isVisible())
-							win2.frame.setVisible(false);
-						if (win.frame != null)
-							win.frame.setVisible(false);
-						if(win.fw.isVisible())
-							win.fw.setVisible(false);
-						String availablePlayer = jsonobj.get("update").toString();
-						String[] players = availablePlayer.split(",");
-						ArrayList<String> playerList = new ArrayList<String>();
-						for (int i = 1; i < players.length; i++) {
-							playerList.add(players[i]);
-						}
-						win.initialize(playerList, name);
 					}
-				}
+				}	
 			}
+			
 		} catch (Exception e) {
 		}
 
