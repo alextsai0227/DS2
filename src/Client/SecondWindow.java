@@ -102,6 +102,17 @@ public class SecondWindow {
 						JOptionPane.showMessageDialog(null, "You Should Put a Letter on Tile to Vote", "Waring", 2);
 					}else {
 						String inputValue = JOptionPane.showInputDialog("Input your words(Insert a \",\" among words):");
+						while(true) {
+							inputValue = JOptionPane.showInputDialog("Input your words(Insert a \",\" among words):");
+							if(inputValue == null) {
+								JOptionPane.showMessageDialog(null, "You Should Enter Word(s) to Vote", "Waring", 2);
+								
+							}else {
+								break;
+							}
+							
+						}
+						
 						if (inputValue != null) {
 							button.setEnabled(false);
 							// msg to server 

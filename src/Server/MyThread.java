@@ -51,6 +51,17 @@ public class MyThread extends Server {
 						String[] userNames=userName.split(",");
 						ArrayList<String> players=new ArrayList<String>();
 						for(int i=0;i<userNames.length;i++)
+					    {
+					       for(int j=0;j<names.size();j++)
+					       {
+					        if(userNames[i].equals(names.get(j))||names.get(j).equals(this.name))
+					          status.set(j, false);
+					       }
+					    }
+					    super.broadcast(names, gameConnection, status);
+						
+						
+						for(int i=0;i<userNames.length;i++)
 						{
 							if(!userNames[i].equals(this.name))
 								players.add(userNames[i]);
@@ -92,6 +103,14 @@ public class MyThread extends Server {
 							}
 							else
 							{
+								for(int i=0;i<games.get(gameID).names.size();i++)
+								{
+									for(int j=0;j<names.size();j++)
+									{
+										if(games.get(gameID).names.get(i).equals(names.get(j)))
+												status.set(j, true);
+									}
+								}
 								super.broadcast(names, gameConnection,status);
 							}
 						}
