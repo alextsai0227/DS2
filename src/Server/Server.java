@@ -34,30 +34,36 @@ public class Server extends Thread {
 			System.out.println("Server ip adress: " + InetAddress.getLocalHost());
 			System.out.println("Waiting for client connection..");
 			while (true) {
-				Socket socket = server.accept();
-				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-				String userName = in.readLine();
-				if(names.contains(userName)) {
-					try {
-						BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-						out.write("duplicat user name");
-						out.flush();
-					} catch (SocketException ex) {
-						ex.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
+				Socket socket =null;
+				try {
+					socket = server.accept();
+					BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+					String userName = in.readLine();
+					if(names.contains(userName)) {
+						try {
+							BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+							out.write("duplicat user name");
+							out.flush();
+						} catch (SocketException ex) {
+							ex.printStackTrace();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						socket.close();
+					}else {
+						names.add(userName);
+						System.out.println("Client " + userName + ": Applying for connection!");
+						MyThread t = new MyThread(socket, userName, names, gameConnection,games,status);
+						t.start();
+						gameConnection.add(t);
+						status.add(true);
+						for (int i = 0; i < names.size(); i++) {
+							gameConnection.get(i).update(names,status);
+						}					
 					}
+				}catch(Exception e) {
 					socket.close();
-				}else {
-					names.add(userName);
-					System.out.println("Client " + userName + ": Applying for connection!");
-					MyThread t = new MyThread(socket, userName, names, gameConnection,games,status);
-					t.start();
-					gameConnection.add(t);
-					status.add(true);
-					for (int i = 0; i < names.size(); i++) {
-						gameConnection.get(i).update(names,status);
-					}					
+					e.printStackTrace();
 				}
 			}
 		} catch (IOException e) {

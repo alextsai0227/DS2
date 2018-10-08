@@ -18,7 +18,7 @@ import javax.swing.JOptionPane;
 
 import java.util.Scanner;
 
-public class FirstWindow  {
+public class FirstWindow extends Client{
 	public JFrame frame;
 	public JPanel panel;
 	public ArrayList<String> names;
@@ -37,6 +37,13 @@ public class FirstWindow  {
 		frame.setBounds(100, 100, 604, 447);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.out.println("WindowClosingDemo.windowClosing");
+                exit();
+            }
+        });
 		panel = new JPanel();
 		this.names = names;
 		for(int i=0;i<names.size();i++)
@@ -115,7 +122,7 @@ public class FirstWindow  {
 	}
 
 	private void exit() {
-		new Client().diconnect();
+		super.diconnect();
 		frame.setVisible(false);
 
 	}

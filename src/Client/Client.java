@@ -8,12 +8,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Scanner;
-
+import java.io.*;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -30,6 +32,8 @@ public class Client {
 	static int gameID;
 	static ArrayList<String> playerOrder;
 	static Boolean isPlaying = false;
+	private static String host;
+	private static int port;
 
 	public Client() {
 	};
@@ -44,6 +48,8 @@ public class Client {
 				FirstWindow win = new FirstWindow();
 				SecondWindow win2=new SecondWindow();
 				socket = connect(args[0], Integer.parseInt(args[1]), name);
+				host = args[0];
+				port = Integer.parseInt(args[1]);
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 				System.out.println("Connection established");
 				String message = null;
@@ -154,7 +160,10 @@ public class Client {
 				}	
 			}
 			
-		} catch (Exception e) {
+		} catch (IOException e) {
+			System.out.print("System out");
+			JOptionPane.showMessageDialog(null, "Server is down", "Information", JOptionPane.PLAIN_MESSAGE);
+			System.exit(0);
 		}
 
 	}
@@ -177,41 +186,35 @@ public class Client {
 
 	public void diconnect() {
 		// TODO Auto-generated method stub
+		System.out.print("disconnect");
 		if (!socket.isClosed()) {
+			System.out.print("disconnect22222");
 			BufferedReader buf = null;
 			PrintStream out = null;
 			try {
 				buf = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				out = new PrintStream(socket.getOutputStream());
+				System.out.print("disconnect==========");
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				JOptionPane.showMessageDialog(null, "Something wrong when disconnecting to the server!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			}
 			try {
+				System.out.print("disconnec======0000");
 				// generate request message
 				JSONObject jsonobj = new JSONObject();
 				jsonobj.put("connect", "0");
 				jsonobj.put("message", "Goodbye,Sever!");
 				String str = jsonobj.toString();
+				System.out.print("disconnec======11111");
 				// set message to server
 				out.println(str);
-				// waiting for server's respond
-				String respond = buf.readLine();
-				JSONObject obj = new JSONObject(respond);
-				JOptionPane.showMessageDialog(null, obj.get("message"), "Information", JOptionPane.PLAIN_MESSAGE);
-				// System.out.println(obj.get("message"));
-				if (obj.get("connect").equals("0")) {
-					socket.close();
 
-				}
-
-			} catch (SocketTimeoutException e) {
-				JOptionPane.showMessageDialog(null, "Time out, the server does not response!", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				// System.out.println("Time out, the server does not response");
-
-			} catch (IOException e) {
+				System.out.print("disconnect33333");
+				System.exit(0);
+		
+			} catch (Exception e) {
 				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 
@@ -269,7 +272,7 @@ public class Client {
 				// set message to server
 				out.write(str + "\n");
 				out.flush();
-			} catch (Exception e) {
+			} catch (IOException e) {
 				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			}
@@ -297,7 +300,7 @@ public class Client {
 				// set message to server
 				out.write(str + "\n");
 				out.flush();
-			} catch (Exception e) {
+			} catch (IOException e) {
 				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			}
@@ -305,11 +308,16 @@ public class Client {
 		}
 	}
 	
-	public void submit(JSONObject jsonobj) {
+	public void submit(JSONObject jsonobj){
+		if(!isSocketAliveUitlitybyCrunchify(host,port)) {
+			JOptionPane.showMessageDialog(null, "Server is down!", "Error",
+					JOptionPane.ERROR_MESSAGE);
+			System.exit(0);
+		}
 		if (!socket.isClosed()) {
-			BufferedWriter out = null;
+			DataOutputStream out = null;
 			try {
-				out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+				out = new DataOutputStream(socket.getOutputStream()); 
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				JOptionPane.showMessageDialog(null, "Something wrong when submit the letter!", "Error",
@@ -319,13 +327,13 @@ public class Client {
 			try {
 				String str = jsonobj.toString();
 				// set message to server
-				out.write(str + "\n");
+				out.writeUTF(str + "\n");
 				out.flush();
-			} catch (Exception e) {
+			} catch (IOException e) {
 				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
 						JOptionPane.ERROR_MESSAGE);
+				System.exit(0);
 			}
-
 		}
 	}
 	
@@ -345,7 +353,7 @@ public class Client {
 				// set message to server
 				out.write(str + "\n");
 				out.flush();
-			} catch (Exception e) {
+			} catch (IOException e) {
 				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			}
@@ -369,7 +377,7 @@ public class Client {
 				// set message to server
 				out.write(str + "\n");
 				out.flush();
-			} catch (Exception e) {
+			} catch (IOException e) {
 				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			}
@@ -392,7 +400,7 @@ public class Client {
 				// set message to server
 				out.write(str + "\n");
 				out.flush();
-			} catch (Exception e) {
+			} catch (IOException e) {
 				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			}
@@ -434,4 +442,29 @@ public class Client {
 		
 	}
 	
+	public static boolean isSocketAliveUitlitybyCrunchify(String hostName, int port) {
+		boolean isAlive = false;
+ 
+		// Creates a socket address from a hostname and a port number
+		SocketAddress socketAddress = new InetSocketAddress(hostName, port);
+		Socket socket = new Socket();
+ 
+		// Timeout required - it's in milliseconds
+		int timeout = 2000;
+ 
+		try {
+			socket.connect(socketAddress, timeout);
+			socket.close();
+			isAlive = true;
+ 
+		} catch (SocketTimeoutException exception) {
+			System.out.println("SocketTimeoutException " + hostName + ":" + port + ". " + exception.getMessage());
+			return isAlive;
+		} catch (IOException exception) {
+			System.out.println(
+					"IOException - Unable to connect to " + hostName + ":" + port + ". " + exception.getMessage());
+			return isAlive;
+		}
+		return isAlive;
+	}
 }
