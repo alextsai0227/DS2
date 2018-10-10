@@ -130,22 +130,38 @@ public class Server extends Thread {
 	
 	public void voted(ArrayList<String> playerNames,String name, JSONObject jsonobj,Game game)
 	{
-		if (jsonobj.get("votefor").equals("yes")){
+		if (jsonobj.get("votefor1").equals("yes")){
 			game.response_yes += 1;
 			game.vote_response += 1;
 		}else {
 			game.vote_response += 1;
 		}
-		if (game.vote_response == playerNames.size() - 1) {
-			if (game.response_yes == playerNames.size() - 1) {
-				// compute score
-				int score = 0;
-				String words = jsonobj.get("words").toString();
-					if (words.contains(",")) {
-						score += words.length() - 2;
-					}else {
-						score += words.length();
-					}
+		String words = jsonobj.get("words").toString();
+		String[] wordsArr = words.split(",");
+		
+		if (wordsArr.length == 2) {
+			if (jsonobj.get("votefor2").equals("yes")) {
+				game.response_yes_2 += 1;
+				game.vote_response_2 += 1;
+			}else {
+				game.vote_response_2 += 1;
+			}
+		}else {
+			game.vote_response_2 += 1;
+		}
+
+		if (game.vote_response == playerNames.size() - 1 && game.vote_response_2 == playerNames.size() - 1) {
+			// compute score
+			int score = 0;
+			
+			if (game.response_yes == playerNames.size() - 1 && game.response_yes_2 == playerNames.size() - 1) {
+				score += wordsArr[0].length() + wordsArr[1].length() - 1;
+				jsonobj.put("updateScore", score);
+			}else if (game.response_yes == playerNames.size() - 1){
+				score += wordsArr[0].length();
+				jsonobj.put("updateScore", score);
+			}else if (game.response_yes_2 == playerNames.size() - 1){
+				score += wordsArr[1].length();
 				jsonobj.put("updateScore", score);
 			}
 			for(int i=0;i<playerNames.size();i++)
@@ -169,7 +185,11 @@ public class Server extends Thread {
 			}			
 			game.response_yes = 0;
 			game.vote_response = 0;
+			game.response_yes_2 = 0;
+			game.vote_response_2 = 0;
+			
 		}
+		
 	}
 	
 	public void pass(ArrayList<String> playerNames,String name, JSONObject jsonobj, Game game)

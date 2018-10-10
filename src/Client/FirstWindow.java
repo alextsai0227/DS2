@@ -111,6 +111,7 @@ public class FirstWindow extends Client{
 	public ArrayList<JCheckBox> setCheckBox(JPanel panel, ArrayList<String> names) {
 		panel.setLayout(new GridLayout(names.size() / 4 + 1, 4));
 		panel.setBounds(49, 13, 474, 300);
+		panel.add(new JLabel("Available user:"));
 		ArrayList<JCheckBox> checkBox = new ArrayList<JCheckBox>();
 		for (int i = 0; i < names.size(); i++) {
 			if (!name.equals(names.get(i))) {

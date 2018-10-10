@@ -34,10 +34,10 @@ public class SecondWindow {
 	JButton submitButton;
 	JButton voteButton;
 	JButton passButton;
-	private JPanel resultPanel;
+	JPanel resultPanel;
 	JComboBox<String> jcombo;
 	private Map<String, Double> position;
-	private int[] scoreOfPlayer;
+    static int[] scoreOfPlayer;
 	private int disableCounter = 0;
 	private String[] inputWords;
 
@@ -101,16 +101,16 @@ public class SecondWindow {
 					if (button.getText()!= null && button.getText().equals("")) {
 						JOptionPane.showMessageDialog(null, "You Should Put a Letter on Tile to Vote", "Waring", 2);
 					}else {
-						String inputValue = JOptionPane.showInputDialog("Input your words(Insert a \",\" among words):");
+						String inputValue = null;
 						while(true) {
 							inputValue = JOptionPane.showInputDialog("Input your words(Insert a \",\" among words):");
 							if(inputValue == null) {
+								break;
+							}else if(inputValue.equals("")){
 								JOptionPane.showMessageDialog(null, "You Should Enter Word(s) to Vote", "Waring", 2);
-								
 							}else {
 								break;
 							}
-							
 						}
 						
 						if (inputValue != null) {
@@ -222,13 +222,13 @@ public class SecondWindow {
 						if (position.isEmpty()) {
 							jb.setText(jcombo.getSelectedItem().toString());
 							jb.setForeground(Color.red);
-							jb.setBackground(Color.black);
+							jb.setBackground(Color.white);
 							position.put("x", jb.getLocation().getX());
 							position.put("y", jb.getLocation().getY());
 						} else {
 							jb.setText(jcombo.getSelectedItem().toString());
 							jb.setForeground(Color.red);
-							jb.setBackground(Color.black);
+							jb.setBackground(Color.white);
 							Point p = new Point();
 							p.setLocation(Double.parseDouble(position.get("x").toString()),
 									Double.parseDouble(position.get("y").toString()));
@@ -272,8 +272,9 @@ public class SecondWindow {
 	}
 
 	private void exit() {
+		new Client();
 		// TODO Auto-generated method stub
-		new Client().back("Y");
+		Client.back("Y");
 		frame.setVisible(false);
 	}
 
@@ -282,8 +283,10 @@ public class SecondWindow {
 		int indexOflabel = index+1;
 		JPanel tempPanel = (JPanel) resultPanel.getComponent(indexOflabel);
 		JLabel tempLable = (JLabel) tempPanel.getComponent(1);
+		scoreOfPlayer[index]+=score;
 		score += Integer.valueOf(tempLable.getText());
 		tempLable.setText(String.valueOf(score));
+		
 	}
 	
 	/**

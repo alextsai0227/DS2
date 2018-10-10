@@ -76,6 +76,8 @@ public class Client {
 								win.fw.setVisible(false);
 							mes.remove(0);
 							win.initialize(mes, name);
+							win.frame.setBounds(100, 100, 604, 447);
+							win.frame.setResizable(false);
 						}
 					}
 					if (mes.size() > 1) {
@@ -114,15 +116,33 @@ public class Client {
 						}else if (jsonobj.get("command").equals("vote")) {
 							disableLetterBtn(win2, jsonobj);
 							String wordToVote = jsonobj.get("words").toString();
-							String question = "Do you agree " + wordToVote +" is a word?"; 	
+							String[] words = wordToVote.split(",");
+							String question = "Do you agree '" + words[0] +"' is a word?";
 							int reply = JOptionPane.showConfirmDialog(null, question, "Vote", JOptionPane.YES_NO_OPTION);
 							if (reply == JOptionPane.YES_OPTION) {	        
-								jsonobj.put("votefor", "yes");
+								jsonobj.put("votefor1", "yes");
 							}else{
-								jsonobj.put("votefor", "no");
+								jsonobj.put("votefor1", "no");
 							}
 							jsonobj.put("command", "voted");
+							if (words.length == 2) {
+								String question2 = "Do you agree '" + words[1] +"' is a word?"; 	
+								int reply2 = JOptionPane.showConfirmDialog(null, question2, "Vote", JOptionPane.YES_NO_OPTION);
+								if (reply2 == JOptionPane.YES_OPTION) {	        
+									jsonobj.put("votefor2", "yes");
+								}else{
+									jsonobj.put("votefor2", "no");
+								}
+							}
 							voted(jsonobj);
+							String resultList="";
+							for(int i=0;i<playerOrder.size();i++)
+							{
+								resultList +=playerOrder.get(i);
+								resultList +=":";
+								resultList +=SecondWindow.scoreOfPlayer[i];
+								resultList += "\n";
+							}
 						}else if (jsonobj.get("command").equals("voted")) {
 							if(jsonobj.get("whoShouldPlay").equals(name)) {
 								controlBtn(true, win2);		
@@ -137,11 +157,28 @@ public class Client {
 								controlBtn(true, win2);		
 							}
 							if (jsonobj.get("isGameOver").equals("Y")) {
-								JOptionPane.showMessageDialog(null, "Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
+								String resultList="";
+								for(int i=0;i<playerOrder.size();i++)
+								{
+									resultList +=playerOrder.get(i);
+									resultList +=":";
+									resultList +=win2.scoreOfPlayer[i];
+									resultList += "\n";
+								}
+								JOptionPane.showMessageDialog(null, "Score:\n"+resultList,"Game Over",JOptionPane.PLAIN_MESSAGE);
 								back("N");
 							}
 						}else if (jsonobj.get("command").equals("gameOver")) { 
-							JOptionPane.showMessageDialog(null, "Someone leaves, Game over!", "Information", JOptionPane.PLAIN_MESSAGE);
+							isPlaying=false;
+							String resultList="";
+							for(int i=0;i<playerOrder.size();i++)
+							{
+								resultList +=playerOrder.get(i);
+								resultList +=":";
+								resultList +=SecondWindow.scoreOfPlayer[i];
+								resultList += "\n";
+							}
+							JOptionPane.showMessageDialog(null, "Score leaves!\nScore:\n"+resultList,"Game Over",JOptionPane.PLAIN_MESSAGE);
 							if(win2.frame!=null&&win2.frame.isVisible())
 								win2.frame.setVisible(false);
 							if (win.frame != null)
@@ -154,14 +191,12 @@ public class Client {
 							for (int i = 1; i < players.length; i++) {
 								playerList.add(players[i]);
 							}
-							win.initialize(playerList, name);
 						}
 					}
 				}	
 			}
 			
 		} catch (IOException e) {
-			System.out.print("System out");
 			JOptionPane.showMessageDialog(null, "Server is down", "Information", JOptionPane.PLAIN_MESSAGE);
 			System.exit(0);
 		}
@@ -309,15 +344,10 @@ public class Client {
 	}
 	
 	public void submit(JSONObject jsonobj){
-		if(!isSocketAliveUitlitybyCrunchify(host,port)) {
-			JOptionPane.showMessageDialog(null, "Server is down!", "Error",
-					JOptionPane.ERROR_MESSAGE);
-			System.exit(0);
-		}
 		if (!socket.isClosed()) {
-			DataOutputStream out = null;
+			BufferedWriter out = null;
 			try {
-				out = new DataOutputStream(socket.getOutputStream()); 
+				out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8")); 
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				JOptionPane.showMessageDialog(null, "Something wrong when submit the letter!", "Error",
@@ -327,7 +357,7 @@ public class Client {
 			try {
 				String str = jsonobj.toString();
 				// set message to server
-				out.writeUTF(str + "\n");
+				out.write(str + "\n");
 				out.flush();
 			} catch (IOException e) {
 				JOptionPane.showMessageDialog(null, "Something wrong when connecting to the server!", "Error",

@@ -5,6 +5,8 @@ public class Game {
 	public ArrayList<Integer> status= new ArrayList<Integer>();
 	public int vote_response = 0;
 	public int response_yes = 0;
+	public int vote_response_2 = 0;
+	public int response_yes_2 = 0;
 	public int passInRow = 0;
 	public int tileCount=0;
 	public Game(ArrayList<String> names,String name)
