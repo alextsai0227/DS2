@@ -53,14 +53,16 @@ public class Client {
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 				System.out.println("Connection established");
 				String message = null;
-				while ((message = in.readLine()) != null) {
+				while ((message = in.readLine()) != null) {	
+					// check if there is duplicate username
 					if(message.equals("duplicat user name")) {
 						System.out.println(message);
-						System.out.println("Connection close");
-						socket.close();
-						System.exit(0);
+						System.out.println("Please enter your name again");
+						name = keyBoard.nextLine();
+						socket = connect(args[0], Integer.parseInt(args[1]), name);
+						in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 					}
-					
+
 					String[] str = message.split(",");
 					ArrayList<String> mes = new ArrayList<String>();
 					for (int i = 0; i < str.length; i++) {
@@ -77,7 +79,7 @@ public class Client {
 							mes.remove(0);
 							win.initialize(mes, name);
 							win.frame.setBounds(100, 100, 604, 447);
-							win.frame.setResizable(false);
+//							win.frame.setResizable(false);
 						}
 					}
 					if (mes.size() > 1) {
@@ -108,14 +110,18 @@ public class Client {
 
 					if(isJSONValid(message)){
 						JSONObject jsonobj = new JSONObject(message);
+						// receive submit from server
 						if (jsonobj.get("command").equals("submit")) { 
 							disableLetterBtn(win2, jsonobj);
 							if(jsonobj.get("whoShouldPlay").equals(name)) {
 								controlBtn(true, win2);		
 							}
 						}else if (jsonobj.get("command").equals("vote")) {
+							// receive vote from server
 							disableLetterBtn(win2, jsonobj);
 							String wordToVote = jsonobj.get("words").toString();
+							
+							// ask player if they agree words
 							String[] words = wordToVote.split(",");
 							String question = "Do you agree '" + words[0] +"' is a word?";
 							int reply = JOptionPane.showConfirmDialog(null, question, "Vote", JOptionPane.YES_NO_OPTION);
@@ -134,6 +140,8 @@ public class Client {
 									jsonobj.put("votefor2", "no");
 								}
 							}
+							
+							// answer to server
 							voted(jsonobj);
 							String resultList="";
 							for(int i=0;i<playerOrder.size();i++)
@@ -147,6 +155,7 @@ public class Client {
 							if(jsonobj.get("whoShouldPlay").equals(name)) {
 								controlBtn(true, win2);		
 							}
+							// receive the voted result from server
 							if(jsonobj.has("updateScore")) {
 								int score = (Integer) jsonobj.get("updateScore");
 								int index = playerOrder.indexOf(jsonobj.get("playerName"));
@@ -156,6 +165,7 @@ public class Client {
 							if(jsonobj.get("whoShouldPlay").equals(name)) {
 								controlBtn(true, win2);		
 							}
+							// receive pass from server and check if everyone pass in row
 							if (jsonobj.get("isGameOver").equals("Y")) {
 								String resultList="";
 								for(int i=0;i<playerOrder.size();i++)
@@ -169,6 +179,7 @@ public class Client {
 								back("N");
 							}
 						}else if (jsonobj.get("command").equals("gameOver")) { 
+							// receive gameOver from server, someone leaves, return to the player pool
 							isPlaying=false;
 							String resultList="";
 							for(int i=0;i<playerOrder.size();i++)
@@ -178,7 +189,7 @@ public class Client {
 								resultList +=SecondWindow.scoreOfPlayer[i];
 								resultList += "\n";
 							}
-							JOptionPane.showMessageDialog(null, "Score leaves!\nScore:\n"+resultList,"Game Over",JOptionPane.PLAIN_MESSAGE);
+							JOptionPane.showMessageDialog(null, "Players leaves!\nScore:\n"+resultList,"Game Over",JOptionPane.PLAIN_MESSAGE);
 							if(win2.frame!=null&&win2.frame.isVisible())
 								win2.frame.setVisible(false);
 							if (win.frame != null)
@@ -454,12 +465,12 @@ public class Client {
 	        new JSONObject(test);
 	    } catch (JSONException ex) {
 	            return false;
-	        
 	    }
 	    return true;
 	}
 	
 	public static void controlBtn(Boolean isOpen, SecondWindow win2) {
+		// change the state of playing button
 		if (isOpen) {
 			win2.submitButton.setEnabled(true);
 			win2.voteButton.setEnabled(true);

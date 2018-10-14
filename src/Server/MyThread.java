@@ -128,6 +128,7 @@ public class MyThread extends Server {
 						}
 						super.broadcast(names, gameConnection, status);
 					}else if (jsonobj.get("command").equals("submit")) 
+					// get submit from player, update the status to all players
 					{
 						games.get(gameID).tileCount += 1;
 						jsonobj.put("whoShouldPlay", games.get(gameID).names.get(whoShouldPlay(jsonobj)));
@@ -143,10 +144,12 @@ public class MyThread extends Server {
 							super.gameOver(names, gameConnection,games.get(gameID).names, jsonobj.get("playerName").toString(), status);
 						}
 					}else if (jsonobj.get("command").equals("vote")) 
+					// get vote from player, ask players if they agree or not
 					{						
 						games.get(gameID).tileCount += 1;
 						super.vote(games.get(gameID).names, jsonobj.get("playerName").toString(), jsonobj, games.get(gameID));
 					}else if (jsonobj.get("command").equals("voted")) 
+					// get voted from player, compute the result and update scores to all players
 					{						
 						jsonobj.put("whoShouldPlay", games.get(gameID).names.get(whoShouldPlay(jsonobj)));
 						super.voted(games.get(gameID).names, jsonobj.get("playerName").toString(), jsonobj, games.get(gameID));
@@ -161,6 +164,7 @@ public class MyThread extends Server {
 							super.gameOver(names, gameConnection,games.get(gameID).names, jsonobj.get("playerName").toString(), status);
 						}
 					}else if (jsonobj.get("command").equals("pass")) {
+						// get pass from player
 						jsonobj.put("whoShouldPlay", games.get(gameID).names.get(whoShouldPlay(jsonobj)));
 						super.pass(games.get(gameID).names, jsonobj.get("playerName").toString(), jsonobj, games.get(gameID));
 					}
@@ -252,6 +256,7 @@ public class MyThread extends Server {
 	}
 	
 	public int whoShouldPlay(JSONObject jsonobj) {
+		// check should play next
 		String playerName = jsonobj.get("playerName").toString();
 		int whoShouldPlay = games.get(gameID).names.indexOf(playerName) + 1;
 		if (whoShouldPlay >= games.get(gameID).names.size()) {
