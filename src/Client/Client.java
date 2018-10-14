@@ -101,6 +101,7 @@ public class Client {
 							win2.frame.setResizable(false);
 							isPlaying = true;
 							playerOrder = playerNames;
+							win2.changePlayer(mes.get(1));
 							if (!name.equals(mes.get(1))) {
 								controlBtn(false, win2);
 							}
@@ -112,6 +113,7 @@ public class Client {
 						JSONObject jsonobj = new JSONObject(message);
 						// receive submit from server
 						if (jsonobj.get("command").equals("submit")) { 
+							win2.changePlayer(jsonobj.get("whoShouldPlay").toString());
 							disableLetterBtn(win2, jsonobj);
 							if(jsonobj.get("whoShouldPlay").equals(name)) {
 								controlBtn(true, win2);		
@@ -152,6 +154,7 @@ public class Client {
 								resultList += "\n";
 							}
 						}else if (jsonobj.get("command").equals("voted")) {
+							win2.changePlayer(jsonobj.get("whoShouldPlay").toString());
 							if(jsonobj.get("whoShouldPlay").equals(name)) {
 								controlBtn(true, win2);		
 							}
@@ -162,6 +165,7 @@ public class Client {
 								win2.changeScore(score, index);
 							}
 						}else if (jsonobj.get("command").equals("pass")) { 
+							win2.changePlayer(jsonobj.get("whoShouldPlay").toString());
 							if(jsonobj.get("whoShouldPlay").equals(name)) {
 								controlBtn(true, win2);		
 							}
@@ -189,7 +193,7 @@ public class Client {
 								resultList +=SecondWindow.scoreOfPlayer[i];
 								resultList += "\n";
 							}
-							JOptionPane.showMessageDialog(null, "Players leaves!\nScore:\n"+resultList,"Game Over",JOptionPane.PLAIN_MESSAGE);
+							JOptionPane.showMessageDialog(null, "Someone leaves!\nScore:\n"+resultList,"Game Over",JOptionPane.PLAIN_MESSAGE);
 							if(win2.frame!=null&&win2.frame.isVisible())
 								win2.frame.setVisible(false);
 							if (win.frame != null)

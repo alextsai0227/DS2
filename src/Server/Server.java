@@ -107,7 +107,7 @@ public class Server extends Thread {
 		{
 			for(int j=0;j<gameConnection.size();j++)
 			{
-				if (gameConnection.get(j).getClientName().equals(playerNames.get(i)) && !gameConnection.get(j).getClientName().equals(name)) {
+				if (gameConnection.get(j).getClientName().equals(playerNames.get(i))) {
 					gameConnection.get(j).msgToClient(jsonobj);
 				}
 			}
@@ -175,7 +175,7 @@ public class Server extends Thread {
 							gameConnection.get(j).msgToClient(jsonobj);
 						}
 					}else {
-						if (gameConnection.get(j).getClientName().equals(playerNames.get(i)) && !gameConnection.get(j).getClientName().equals(name)) {
+						if (gameConnection.get(j).getClientName().equals(playerNames.get(i))) {
 							gameConnection.get(j).msgToClient(jsonobj);
 						}
 					}
@@ -209,7 +209,7 @@ public class Server extends Thread {
 						gameConnection.get(j).msgToClient(jsonobj);
 					}
 				}else {
-					if (gameConnection.get(j).getClientName().equals(playerNames.get(i)) && !gameConnection.get(j).getClientName().equals(name)) {
+					if (gameConnection.get(j).getClientName().equals(playerNames.get(i))) {
 						gameConnection.get(j).msgToClient(jsonobj);
 					}
 				}

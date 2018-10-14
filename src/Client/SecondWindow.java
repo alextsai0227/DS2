@@ -35,6 +35,7 @@ public class SecondWindow {
 	JButton voteButton;
 	JButton passButton;
 	JPanel resultPanel;
+	JLabel playerName;
 	JComboBox<String> jcombo;
 	private Map<String, Double> position;
     static int[] scoreOfPlayer;
@@ -250,11 +251,15 @@ public class SecondWindow {
 	// add the user selection panel
 	private void addPlayerPanel() {
 		JPanel lPanel = new JPanel();
-
+		
+		JLabel state = new JLabel("Game State:");
+		playerName = new JLabel();
 		submitButton = new JButton("submit");
 		voteButton = new JButton("vote");
 		passButton = new JButton("pass");
-		lPanel.add(submitButton);
+		lPanel.add(state);
+		lPanel.add(playerName);
+		lPanel.add(submitButton);	
 		lPanel.add(voteButton);
 		lPanel.add(passButton);
 
@@ -287,6 +292,10 @@ public class SecondWindow {
 		score += Integer.valueOf(tempLable.getText());
 		tempLable.setText(String.valueOf(score));
 		
+	}
+
+	public void changePlayer(String name){
+		playerName.setText(name + " is playing.   ");
 	}
 	
 	/**
